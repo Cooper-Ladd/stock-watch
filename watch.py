@@ -138,7 +138,12 @@ def send_to_discord(message):
         print("DISCORD_WEBHOOK not set — printing report instead of sending:\n")
         print(message)
         return
-    resp = requests.post(url, json={"content": message}, timeout=30)
+    payload = {
+        "content": f"@everyone\n{message}",
+        # Webhooks suppress mentions unless we explicitly allow them.
+        "allowed_mentions": {"parse": ["everyone"]},
+    }
+    resp = requests.post(url, json=payload, timeout=30)
     resp.raise_for_status()
     print("Report sent to Discord.")
 
