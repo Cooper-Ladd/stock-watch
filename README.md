@@ -1,9 +1,9 @@
 # Stock dip watch
 
-A tiny, free stock-dip notifier. Once a day (and once a week) it checks a
-watchlist of ~100 large-cap US stocks, finds the biggest price drops, and posts
-a summary to a Discord channel. It runs in the cloud on GitHub Actions — your
-computer doesn't need to be on.
+A tiny, free stock-dip notifier. Once a day (and once a week) it checks the
+S&P 500, finds the biggest price drops, and posts a summary to a Discord
+channel. It runs in the cloud on GitHub Actions — your computer doesn't need
+to be on.
 
 - **Data:** [yfinance](https://pypi.org/project/yfinance/) (free, no API key)
 - **Schedule:** GitHub Actions cron, after US market close
@@ -18,7 +18,7 @@ computer doesn't need to be on.
   monitoring, showing each one's move (up 🔺 or down 🔻) regardless of whether it
   made the top drops.
 
-`N` defaults to **12** and is configurable.
+`N` defaults to **20** and is configurable.
 
 ## One-time setup
 
@@ -44,7 +44,7 @@ Edit [`config.json`](config.json):
 
 | Field | Meaning |
 |-------|---------|
-| `top_n` | How many of the biggest drops to report (10–15 is a good range). |
+| `top_n` | How many of the biggest drops to report (currently 20). |
 | `daily_min_drop_pct` | Only report daily drops at least this big (`0` = just show the biggest drops). |
 | `weekly_min_drop_pct` | Same, for the weekly report. |
 | `watching` | Stocks you're actively monitoring — they get their own 👀 section showing each one's move (up or down). Leave empty (`[]`) to hide the section. |
@@ -72,5 +72,6 @@ $env:DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."; python watch.py dai
 - GitHub cron runs in **UTC** and ignores US daylight saving; the schedule is set
   to 22:00 UTC so it's always after the 4pm ET close. Cron can also be delayed a
   few minutes under load — fine for a daily close check.
-- The watchlist is a static snapshot of large-caps; market-cap rankings drift over
-  time, so edit `config.json` whenever you like.
+- The watchlist is a static snapshot of the S&P 500 (503 symbols); index
+  membership drifts over time, so refresh `tickers` in `config.json` whenever
+  you like.

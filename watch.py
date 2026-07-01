@@ -102,7 +102,7 @@ def format_watching(mode, changes):
         if c["pct"] is None:
             lines.append(f"    `{c['ticker']:<6}` (no data)")
         else:
-            arrow = "🔻" if c["pct"] < 0 else "🔺"
+            arrow = "📉" if c["pct"] < 0 else "📈"
             lines.append(
                 f" {arrow} `{c['ticker']:<6}` {c['pct']:+6.2f}%   ${c['price']:,.2f}"
             )
@@ -164,14 +164,16 @@ def main():
 
     if mode == "daily":
         # Pull ~2 weeks so holidays/half-days never leave us short of 2 closes.
-        closes = fetch_closes(all_tickers, period="15d")
+        period = "15d"
         lookback = 1
         min_drop = float(cfg.get("daily_min_drop_pct", 0.0))
     else:
         # One trading week back = 5 rows; pull ~1 month for a safety margin.
-        closes = fetch_closes(all_tickers, period="1mo")
+        period = "1mo"
         lookback = 5
         min_drop = float(cfg.get("weekly_min_drop_pct", 0.0))
+
+    closes = fetch_closes(all_tickers, period=period)
 
     # Rank drops over the main watchlist only, so watch-only names (an index,
     # Bitcoin, etc.) can't crowd into the top-drops list.
@@ -181,6 +183,15 @@ def main():
 
     if watching:
         changes = compute_changes(closes, lookback, watching)
+        # yfinance's big batch download occasionally drops a valid symbol; retry
+        # any watched names that came back empty by fetching them on their own.
+        missing = [c["ticker"] for c in changes if c["pct"] is None]
+        if missing:
+            retry = fetch_closes(missing, period=period)
+            retried = {c["ticker"]: c for c in compute_changes(retry, lookback, missing)}
+            changes = [
+                retried[c["ticker"]] if c["pct"] is None else c for c in changes
+            ]
         watching_section = format_watching(mode, changes)
         if watching_section:
             message = f"{message}\n{watching_section}"
