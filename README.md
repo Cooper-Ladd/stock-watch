@@ -14,6 +14,9 @@ computer doesn't need to be on.
 
 - **Daily** (Mon–Fri): the top `N` biggest drops vs. the previous trading day's close.
 - **Weekly** (Fri): the top `N` biggest drops vs. ~one week ago (5 trading days).
+- **👀 Watching:** a separate section listing the stocks you're actively
+  monitoring, showing each one's move (up 🔺 or down 🔻) regardless of whether it
+  made the top drops.
 
 `N` defaults to **12** and is configurable.
 
@@ -44,6 +47,7 @@ Edit [`config.json`](config.json):
 | `top_n` | How many of the biggest drops to report (10–15 is a good range). |
 | `daily_min_drop_pct` | Only report daily drops at least this big (`0` = just show the biggest drops). |
 | `weekly_min_drop_pct` | Same, for the weekly report. |
+| `watching` | Stocks you're actively monitoring — they get their own 👀 section showing each one's move (up or down). Leave empty (`[]`) to hide the section. |
 | `tickers` | The watchlist. Edit freely — add/remove any symbols. |
 
 ## Run locally

@@ -69,6 +69,46 @@ def compute_drops(closes, lookback_rows):
     return drops
 
 
+def compute_changes(closes, lookback_rows, tickers):
+    """Like compute_drops, but for a specific list of tickers and keeping every
+    move — up or down. Preserves the order the tickers were given in, and notes
+    any that couldn't be priced.
+    """
+    changes = []
+    for ticker in tickers:
+        if ticker not in closes.columns:
+            changes.append({"ticker": ticker, "pct": None, "price": None})
+            continue
+        series = closes[ticker].dropna()
+        if len(series) <= lookback_rows:
+            changes.append({"ticker": ticker, "pct": None, "price": None})
+            continue
+        latest = float(series.iloc[-1])
+        prior = float(series.iloc[-1 - lookback_rows])
+        if prior <= 0:
+            changes.append({"ticker": ticker, "pct": None, "price": None})
+            continue
+        pct = (latest - prior) / prior * 100.0
+        changes.append({"ticker": ticker, "pct": pct, "price": latest})
+    return changes
+
+
+def format_watching(mode, changes):
+    if not changes:
+        return None
+    span = "vs previous close" if mode == "daily" else "vs ~1 week ago"
+    lines = [f"\n👀 **Watching** — {span}"]
+    for c in changes:
+        if c["pct"] is None:
+            lines.append(f"    `{c['ticker']:<6}` (no data)")
+        else:
+            arrow = "🔻" if c["pct"] < 0 else "🔺"
+            lines.append(
+                f" {arrow} `{c['ticker']:<6}` {c['pct']:+6.2f}%   ${c['price']:,.2f}"
+            )
+    return "\n".join(lines)
+
+
 def format_message(mode, drops, top_n, min_drop_pct):
     date = None
     filtered = [d for d in drops if d["pct"] <= -abs(min_drop_pct)]
@@ -115,20 +155,36 @@ def main():
 
     cfg = load_config()
     tickers = cfg["tickers"]
+    watching = cfg.get("watching", [])
     top_n = int(cfg.get("top_n", 12))
+
+    # Fetch the watchlist and the actively-watched names together so the watched
+    # ones are priced even if they aren't in the main list.
+    all_tickers = list(dict.fromkeys(tickers + watching))
 
     if mode == "daily":
         # Pull ~2 weeks so holidays/half-days never leave us short of 2 closes.
-        closes = fetch_closes(tickers, period="15d")
-        drops = compute_drops(closes, lookback_rows=1)
+        closes = fetch_closes(all_tickers, period="15d")
+        lookback = 1
         min_drop = float(cfg.get("daily_min_drop_pct", 0.0))
     else:
         # One trading week back = 5 rows; pull ~1 month for a safety margin.
-        closes = fetch_closes(tickers, period="1mo")
-        drops = compute_drops(closes, lookback_rows=5)
+        closes = fetch_closes(all_tickers, period="1mo")
+        lookback = 5
         min_drop = float(cfg.get("weekly_min_drop_pct", 0.0))
 
+    # Rank drops over the main watchlist only, so watch-only names (an index,
+    # Bitcoin, etc.) can't crowd into the top-drops list.
+    main_cols = [t for t in tickers if t in closes.columns]
+    drops = compute_drops(closes[main_cols], lookback_rows=lookback)
     message = format_message(mode, drops, top_n, min_drop)
+
+    if watching:
+        changes = compute_changes(closes, lookback, watching)
+        watching_section = format_watching(mode, changes)
+        if watching_section:
+            message = f"{message}\n{watching_section}"
+
     print(message, "\n")
     send_to_discord(message)
 
