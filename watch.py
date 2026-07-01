@@ -156,7 +156,7 @@ def format_message(mode, drops, top_n, min_drop_pct, names):
     lines = [header]
     for i, d in enumerate(top, 1):
         name = label(d["ticker"], names)
-        lines.append(f"{i:>2}. ❌ {name} {d['pct']:+.2f}%   ${d['price']:,.2f}")
+        lines.append(f"{i:>2}. {name} {d['pct']:+.2f}%   ${d['price']:,.2f}")
     return "\n".join(lines)
 
 
