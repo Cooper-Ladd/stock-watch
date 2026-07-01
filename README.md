@@ -18,9 +18,6 @@ to be on.
   monitoring, showing each one's move (up ✅ or down ❌) regardless of whether it
   made the top drops.
 
-Stocks are labelled as `Company (TICKER)` — e.g. `NVIDIA (NVDA)` — and each line is
-marked ✅ when it's up on the period and ❌ when it's down.
-
 `N` defaults to **20** and is configurable.
 
 ## One-time setup
@@ -51,7 +48,6 @@ Edit [`config.json`](config.json):
 | `daily_min_drop_pct` | Only report daily drops at least this big (`0` = just show the biggest drops). |
 | `weekly_min_drop_pct` | Same, for the weekly report. |
 | `watching` | Stocks you're actively monitoring — they get their own 👀 section showing each one's move (up or down). Leave empty (`[]`) to hide the section. |
-| `names` | Optional `TICKER → company name` overrides used for the `Company (TICKER)` labels. Any ticker not listed is looked up from Yahoo Finance, falling back to the bare symbol. |
 | `tickers` | The watchlist. Edit freely — add/remove any symbols. |
 
 ## Run locally

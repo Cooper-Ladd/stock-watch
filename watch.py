@@ -23,40 +23,10 @@ import yfinance as yf
 
 CONFIG_PATH = Path(__file__).with_name("config.json")
 
-# Company names are cached per run so a ticker is only looked up once even if it
-# shows up in more than one section of the report.
-_NAME_CACHE = {}
-
 
 def load_config():
     with open(CONFIG_PATH, encoding="utf-8") as fh:
         return json.load(fh)
-
-
-def get_name(ticker, overrides):
-    """Return a human-friendly company name for a ticker.
-
-    Prefers the config `names` override, then Yahoo Finance's short/long name,
-    and finally falls back to None so callers can show the bare symbol.
-    """
-    if ticker in overrides:
-        return overrides[ticker]
-    if ticker in _NAME_CACHE:
-        return _NAME_CACHE[ticker]
-    name = None
-    try:
-        info = yf.Ticker(ticker).info
-        name = info.get("shortName") or info.get("longName")
-    except Exception:
-        name = None  # network hiccup / unknown symbol — fall back to the ticker
-    _NAME_CACHE[ticker] = name
-    return name
-
-
-def label(ticker, overrides):
-    """Format a ticker as 'Company (TICKER)', or just 'TICKER' if no name."""
-    name = get_name(ticker, overrides)
-    return f"{name} ({ticker})" if name else ticker
 
 
 def fetch_closes(tickers, period):
@@ -123,22 +93,23 @@ def compute_changes(closes, lookback_rows, tickers):
     return changes
 
 
-def format_watching(mode, changes, names):
+def format_watching(mode, changes):
     if not changes:
         return None
     span = "vs previous close" if mode == "daily" else "vs ~1 week ago"
     lines = [f"\n👀 **Watching** — {span}"]
     for c in changes:
-        name = label(c["ticker"], names)
         if c["pct"] is None:
-            lines.append(f" ⬜ {name} (no data)")
+            lines.append(f"    `{c['ticker']:<7}` (no data)")
         else:
             mark = "❌" if c["pct"] < 0 else "✅"
-            lines.append(f" {mark} {name} {c['pct']:+.2f}%   ${c['price']:,.2f}")
+            lines.append(
+                f" {mark} `{c['ticker']:<7}` {c['pct']:+6.2f}%   ${c['price']:,.2f}"
+            )
     return "\n".join(lines)
 
 
-def format_message(mode, drops, top_n, min_drop_pct, names):
+def format_message(mode, drops, top_n, min_drop_pct):
     date = None
     filtered = [d for d in drops if d["pct"] <= -abs(min_drop_pct)]
     top = filtered[:top_n]
@@ -155,8 +126,7 @@ def format_message(mode, drops, top_n, min_drop_pct, names):
 
     lines = [header]
     for i, d in enumerate(top, 1):
-        name = label(d["ticker"], names)
-        lines.append(f"{i:>2}. {name} {d['pct']:+.2f}%   ${d['price']:,.2f}")
+        lines.append(f"{i:>2}. `{d['ticker']:<6}` {d['pct']:+6.2f}%   ${d['price']:,.2f}")
     return "\n".join(lines)
 
 
@@ -186,7 +156,6 @@ def main():
     cfg = load_config()
     tickers = cfg["tickers"]
     watching = cfg.get("watching", [])
-    names = cfg.get("names", {})
     top_n = int(cfg.get("top_n", 12))
 
     # Fetch the watchlist and the actively-watched names together so the watched
@@ -210,7 +179,7 @@ def main():
     # Bitcoin, etc.) can't crowd into the top-drops list.
     main_cols = [t for t in tickers if t in closes.columns]
     drops = compute_drops(closes[main_cols], lookback_rows=lookback)
-    message = format_message(mode, drops, top_n, min_drop, names)
+    message = format_message(mode, drops, top_n, min_drop)
 
     if watching:
         changes = compute_changes(closes, lookback, watching)
@@ -223,7 +192,7 @@ def main():
             changes = [
                 retried[c["ticker"]] if c["pct"] is None else c for c in changes
             ]
-        watching_section = format_watching(mode, changes, names)
+        watching_section = format_watching(mode, changes)
         if watching_section:
             message = f"{message}\n{watching_section}"
 
