@@ -1,0 +1,44 @@
+name: Stock dip watch
+
+on:
+  schedule:
+    # GitHub cron is in UTC and does NOT observe US daylight saving.
+    # US market closes 4:00pm ET = 20:00 UTC (summer) / 21:00 UTC (winter).
+    # 22:00 UTC is safely after close year-round.
+    - cron: "0 22 * * 1-5"   # daily report, Mon-Fri
+    - cron: "30 22 * * 5"    # weekly report, Fri (30 min after Friday's daily)
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+    inputs:
+      mode:
+        description: "Report mode"
+        required: true
+        default: "daily"
+        type: choice
+        options: ["daily", "weekly"]
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run report
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          if [ "${{ github.event.schedule }}" = "30 22 * * 5" ]; then
+            MODE=weekly
+          elif [ -n "${{ github.event.inputs.mode }}" ]; then
+            MODE="${{ github.event.inputs.mode }}"
+          else
+            MODE=daily
+          fi
+          echo "Running in $MODE mode"
+          python watch.py "$MODE"

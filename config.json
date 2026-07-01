@@ -1,0 +1,18 @@
+{
+  "top_n": 12,
+  "daily_min_drop_pct": 0.0,
+  "weekly_min_drop_pct": 0.0,
+  "_comment": "top_n = how many biggest drops to report. *_min_drop_pct = only report a stock if it dropped at least this much (0 = report the biggest drops regardless of size, as long as they are negative).",
+  "tickers": [
+    "AAPL", "MSFT", "NVDA", "GOOGL", "GOOG", "AMZN", "META", "BRK-B", "LLY", "AVGO",
+    "TSLA", "JPM", "WMT", "V", "XOM", "UNH", "MA", "ORCL", "HD", "PG",
+    "JNJ", "COST", "ABBV", "BAC", "KO", "MRK", "CVX", "NFLX", "AMD", "CRM",
+    "PEP", "TMO", "ADBE", "LIN", "WFC", "MCD", "CSCO", "ACN", "ABT", "DHR",
+    "GE", "IBM", "TXN", "QCOM", "DIS", "INTU", "VZ", "CAT", "PM", "AXP",
+    "AMGN", "ISRG", "NOW", "MS", "PFE", "CMCSA", "GS", "NEE", "UNP", "RTX",
+    "T", "LOW", "SPGI", "HON", "BKNG", "UBER", "COP", "ELV", "PGR", "BLK",
+    "C", "VRTX", "SYK", "BSX", "TJX", "ADP", "MDT", "GILD", "DE", "LMT",
+    "MMC", "ADI", "REGN", "PLD", "CB", "SCHW", "ETN", "MU", "BX", "KLAC",
+    "PANW", "SBUX", "BMY", "MDLZ", "FI", "SO", "CI", "DUK", "ZTS", "ICE"
+  ]
+}
