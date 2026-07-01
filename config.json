@@ -2,11 +2,14 @@
   "top_n": 20,
   "daily_min_drop_pct": 0.0,
   "weekly_min_drop_pct": 0.0,
-  "_comment": "top_n = how many biggest drops to report. *_min_drop_pct = only report a stock if it dropped at least this much (0 = report the biggest drops regardless of size, as long as they are negative). watching = stocks you're actively monitoring; they get their own section showing each one's move (up or down), regardless of whether they made the top drops. USF.NZ is the Smartshares US 500 ETF (Sharesies' 'Smart US 500'), which tracks the S&P 500 in NZD. tickers = the S&P 500 (503 symbols; a static snapshot — refresh it whenever the index changes).",
+  "_comment": "top_n = how many biggest drops to report. *_min_drop_pct = only report a stock if it dropped at least this much (0 = report the biggest drops regardless of size, as long as they are negative). watching = stocks you're actively monitoring; they get their own section showing each one's move (up or down), regardless of whether they made the top drops. USF.NZ is the Smartshares US 500 ETF (Sharesies' 'Smart US 500'), which tracks the S&P 500 in NZD. labels = optional display name overrides for the watching section; any ticker not listed just shows its symbol. tickers = the S&P 500 (503 symbols; a static snapshot — refresh it whenever the index changes).",
   "watching": [
     "NVDA", "IBM", "MSFT", "TSLA", "^GSPC", "BTC-USD",
     "AAPL", "TSM", "AVGO", "INTC", "AMD", "RKLB", "USF.NZ"
   ],
+  "labels": {
+    "USF.NZ": "S&P 500 NZ"
+  },
   "tickers": [
     "A", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE", "ADI", "ADM",
     "ADP", "ADSK", "AEE", "AEP", "AES", "AFL", "AIG", "AIZ", "AJG", "AKAM",

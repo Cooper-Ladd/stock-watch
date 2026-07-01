@@ -93,18 +93,20 @@ def compute_changes(closes, lookback_rows, tickers):
     return changes
 
 
-def format_watching(mode, changes):
+def format_watching(mode, changes, labels=None):
     if not changes:
         return None
+    labels = labels or {}
     span = "vs previous close" if mode == "daily" else "vs ~1 week ago"
     lines = [f"\n👀 **Watching** — {span}"]
     for c in changes:
+        name = labels.get(c["ticker"], c["ticker"])
         if c["pct"] is None:
-            lines.append(f"    `{c['ticker']:<7}` (no data)")
+            lines.append(f"    `{name:<10}` (no data)")
         else:
             mark = "❌" if c["pct"] < 0 else "✅"
             lines.append(
-                f" {mark} `{c['ticker']:<7}` {c['pct']:+6.2f}%   ${c['price']:,.2f}"
+                f" {mark} `{name:<10}` {c['pct']:+6.2f}%   ${c['price']:,.2f}"
             )
     return "\n".join(lines)
 
@@ -156,6 +158,7 @@ def main():
     cfg = load_config()
     tickers = cfg["tickers"]
     watching = cfg.get("watching", [])
+    labels = cfg.get("labels", {})
     top_n = int(cfg.get("top_n", 12))
 
     # Fetch the watchlist and the actively-watched names together so the watched
@@ -192,7 +195,7 @@ def main():
             changes = [
                 retried[c["ticker"]] if c["pct"] is None else c for c in changes
             ]
-        watching_section = format_watching(mode, changes)
+        watching_section = format_watching(mode, changes, labels)
         if watching_section:
             message = f"{message}\n{watching_section}"
 
